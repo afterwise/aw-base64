@@ -5,7 +5,7 @@ matrix:
     env: CFLAGS=-coverage LDFLAGS=-coverage
     os: osx
   - compiler: gcc
-    env: CFLAGS="-fprofile-arcs -ftest-coverage" LDFLAGS=--fprofile-arcs
+    env: CFLAGS="-fprofile-arcs -ftest-coverage" LDFLAGS=-fprofile-arcs
     os: linux
 script: make -C test && ./test/test
 sudo: required

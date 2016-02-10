@@ -6,10 +6,12 @@
 #include <stdio.h>
 #include <string.h>
 
-static void *encode(size_t *enclen, const void *data, size_t datasize) {
+static void *encode(size_t *enclen, const void *data, size_t datasize, int url) {
 	size_t n = base64len(datasize);
 	char *p = malloc(n + 1);
-	size_t r = base64(p, n, data, datasize);
+	size_t r = url ?
+		base64url(p, n, data, datasize) :
+		base64(p, n, data, datasize);
 	assert(r == n);
 	p[n] = 0;
 	printf("encoded: %zu->%zu bytes\n", datasize, n);
@@ -46,9 +48,13 @@ int main(int argc, char *argv[]) {
 	for (i = 0; i < 256; ++i)
 		data[i] = i;
 
-	enc = encode(&enclen, data, 256);
+	enc = encode(&enclen, data, 256, 0);
 	dec = decode(&declen, enc, enclen);
+	assert(declen == 256);
+	assert(memcmp(data, dec, 256) == 0);
 
+	enc = encode(&enclen, data, 256, 1);
+	dec = decode(&declen, enc, enclen);
 	assert(declen == 256);
 	assert(memcmp(data, dec, 256) == 0);
 

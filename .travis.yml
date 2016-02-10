@@ -1,0 +1,14 @@
+language: c
+compiler:
+  - clang
+  - gcc
+env:
+  - CFLAGS=-coverage LDFLAGS=-coverage
+  - CFLAGS="-fprofile-arcs -ftest-coverage" LDFLAGS=--fprofile-arcs
+script: make -C test && ./test/test
+before_install:
+  - pip install codecov
+install: true
+after_success:
+  - ( cd test && codecov )
+

@@ -49,7 +49,7 @@ extern "C" {
 #endif
 
 _base64_alwaysinline
-static size_t base64len(size_t n) { return (n + 2) / 3 * 4; }
+static inline size_t base64len(size_t n) { return (n + 2) / 3 * 4; }
 
 _base64_unused
 static size_t _base64(

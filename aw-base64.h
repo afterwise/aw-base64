@@ -1,6 +1,7 @@
+/* vim: set ts=4 sw=4 noet : */
 
 /*
-   Copyright (c) 2014-2016 Malte Hildingsson, malte (at) afterwi.se
+   Copyright (c) 2014-2023 Malte Hildingsson, malte (at) afterwi.se
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -26,15 +27,21 @@
 
 #include <sys/types.h>
 
-#if __GNUC__
-# define _base64_alwaysinline __attribute__((always_inline))
+#if defined(_HAS_CXX17)
+# define _base64_unused [[maybe_unused]]
+#elif defined(__GNUC__)
 # define _base64_unused __attribute__((unused))
-#elif _MSC_VER
-# define _base64_alwaysinline __forceinline
+#elif defined(_MSC_VER)
 # define _base64_unused
 #endif
 
-#if __GNUC__
+#if defined(__GNUC__)
+# define _base64_alwaysinline __attribute__((always_inline))
+#elif defined(_MSC_VER)
+# define _base64_alwaysinline __forceinline
+#endif
+
+#if defined(__GNUC__)
 # define _base64_likely(x) __builtin_expect(!!(x), 1)
 # define _base64_unlikely(x) __builtin_expect(!!(x), 0)
 #else
@@ -48,8 +55,14 @@
 extern "C" {
 #endif
 
+#if defined(_MSC_VER)
+typedef signed __int64 base64_ssize_t;
+#else
+typedef ssize_t base64_ssize_t;
+#endif
+
 _base64_alwaysinline
-static inline size_t base64len(size_t n) { return (n + 2) / 3 * 4; }
+static size_t base64len(size_t n) { return (n + 2) / 3 * 4; }
 
 _base64_unused
 static size_t _base64(
@@ -63,21 +76,21 @@ static size_t _base64(
 			x |= (++i < len ? src[i] : 0) << 0;
 			*dst++ = al[x >> 3 * 6 & 0x3f];
 			*dst++ = al[x >> 2 * 6 & 0x3f];
-			*dst++ = _base64_sel((ssize_t) (len - 0 - i), al[x >> 1 * 6 & 0x3f], 0x3d);
-			*dst++ = _base64_sel((ssize_t) (len - 1 - i), al[x >> 0 * 6 & 0x3f], 0x3d);
+			*dst++ = _base64_sel((base64_ssize_t) (len - 0 - i), al[x >> 1 * 6 & 0x3f], 0x3d);
+			*dst++ = _base64_sel((base64_ssize_t) (len - 1 - i), al[x >> 0 * 6 & 0x3f], 0x3d);
 		}
 	return res;
 }
 
 _base64_unused
 static size_t base64(char *dst, size_t size, const unsigned char *src, size_t len) {
-	const char al[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	const char al[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 	return _base64(dst, size, src, len, al);
 }
 
 _base64_unused
 static size_t base64url(char *dst, size_t size, const unsigned char *src, size_t len) {
-	const char al[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+	const char al[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 	return _base64(dst, size, src, len, al);
 }
 
@@ -104,7 +117,7 @@ static const unsigned char _unbase64tab[] = {
 /* state must be initialized to zero when starting a new stream */
 
 _base64_unused
-static ssize_t unbase64(
+static base64_ssize_t unbase64(
 		unsigned char *__restrict dst, size_t size, const char *__restrict src,
 		size_t *__restrict len, int *__restrict state) {
 	size_t res = 0;

@@ -36,7 +36,7 @@
 #endif
 
 #if defined(__GNUC__)
-# define _base64_alwaysinline __attribute__((always_inline))
+# define _base64_alwaysinline __attribute__((always_inline)) inline
 #elif defined(_MSC_VER)
 # define _base64_alwaysinline __forceinline
 #endif
